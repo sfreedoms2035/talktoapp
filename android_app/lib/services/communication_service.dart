@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 class CommunicationService {
-  static const String _baseUrl = 'http://YOUR_RUNPOD_IP:8000'; // Replace with actual RunPod IP
+  static const String _baseUrl = 'http://69.30.85.95:8000'; // Replace with actual RunPod IP
   static const String _apiEndpoint = '$_baseUrl/process';
   
   bool _isConnected = false;
