@@ -1,13 +1,12 @@
 import torch
 from PIL import Image
 import logging
-import base64
-from io import BytesIO
+from qwen_vl_utils import process_vision_info
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-def process_multimodal_input(text, image, model, tokenizer, image_processor, device):
+def process_multimodal_input(text, image, model, tokenizer, processor, device):
     """
     Process multimodal input (text + image) using Qwen 2.5 VL model
     
@@ -16,6 +15,7 @@ def process_multimodal_input(text, image, model, tokenizer, image_processor, dev
         image (PIL.Image): Captured image
         model: Loaded Qwen model
         tokenizer: Model tokenizer
+        processor: Model processor
         device: Computing device (CPU/GPU)
         
     Returns:
@@ -24,44 +24,31 @@ def process_multimodal_input(text, image, model, tokenizer, image_processor, dev
     try:
         logger.info(f"Processing multimodal input: {text}")
         
-        # Convert image to base64 string
-        buffered = BytesIO()
-        image.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
-        
         # Format input for Qwen 2.5 VL
-        # This format may need adjustment based on the specific model requirements
-        conversation = [
+        messages = [
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": text},
-                    {
-                        "type": "image",
-                        "image": img_str
-                    }
+                    {"type": "image"},
+                    {"type": "text", "text": text}
                 ]
             }
         ]
         
-        # Process the inputs using the model's specific method
-        # This is a generic approach - you might need to adjust based on the model's requirements
-        prompt = f"<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n<image>\n{text}<|im_end|>\n<|im_start|>assistant\n"
+        # Apply chat template
+        text_prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
         
-        # Tokenize the input
-        inputs = tokenizer(
-            prompt,
+        # Process inputs
+        inputs = processor(
+            text=[text_prompt],
+            images=[image],
             return_tensors="pt",
-            padding=True,
-            truncation=True
-        )
-        
-        # Move inputs to device
-        inputs = {k: v.to(device) for k, v in inputs.items()}
+            padding=True
+        ).to(device)
         
         # Generate response
         with torch.no_grad():
-            output = model.generate(
+            output_ids = model.generate(
                 **inputs,
                 max_new_tokens=512,
                 do_sample=True,
@@ -70,7 +57,7 @@ def process_multimodal_input(text, image, model, tokenizer, image_processor, dev
             )
         
         # Decode the response
-        response_text = tokenizer.decode(output[0], skip_special_tokens=True)
+        response_text = processor.batch_decode(output_ids[:, inputs["input_ids"].size(1):], skip_special_tokens=True)[0]
         
         logger.info("Response generated successfully")
         return response_text.strip()
