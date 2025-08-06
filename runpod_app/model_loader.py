@@ -1,5 +1,6 @@
 import torch
-from transformers import AutoModelForImageToText, AutoTokenizer, AutoImageProcessor
+from transformers import Qwen2_5_VLForConditionalGeneration, AutoTokenizer, AutoProcessor
+from qwen_vl_utils import process_vision_info
 import logging
 import os
 
@@ -26,19 +27,19 @@ def load_model():
             token=hf_token  # Use token if available
         )
         
-        # Load image processor
-        image_processor = AutoImageProcessor.from_pretrained(
+        # Load processor
+        processor = AutoProcessor.from_pretrained(
             model_name,
             trust_remote_code=True,
             token=hf_token  # Use token if available
         )
         
         # Load model
-        model = AutoModelForImageToText.from_pretrained(
+        model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
             model_name,
             trust_remote_code=True,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-            device_map="auto",
+            torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+            device_map="cuda" if torch.cuda.is_available() else "cpu",
             token=hf_token  # Use token if available
         )
         
@@ -49,7 +50,7 @@ def load_model():
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         logger.info(f"Model loaded successfully on {device}")
-        return model, tokenizer, image_processor, device
+        return model, tokenizer, processor, device
         
     except Exception as e:
         logger.error(f"Failed to load model: {e}")
