@@ -13,7 +13,8 @@ def load_model():
         logger.info("Loading Qwen 2.5-VL model...")
         
         # Model name
-        model_name = "unsloth/Qwen2.5-VL-3B-Instruct-unsloth-bnb-4bit"
+        #model_name = "unsloth/Qwen2.5-VL-3B-Instruct-unsloth-bnb-4bit"
+        model_name = "Qwen/Qwen2.5-VL-3B-Instruct"
         
         # Load processor
         processor = AutoProcessor.from_pretrained(
