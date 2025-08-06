@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForVision2Seq, AutoTokenizer, AutoImageProcessor
 import logging
 import os
 
@@ -26,8 +26,15 @@ def load_model():
             token=hf_token  # Use token if available
         )
         
+        # Load image processor
+        image_processor = AutoImageProcessor.from_pretrained(
+            model_name,
+            trust_remote_code=True,
+            token=hf_token  # Use token if available
+        )
+        
         # Load model
-        model = AutoModelForCausalLM.from_pretrained(
+        model = AutoModelForVision2Seq.from_pretrained(
             model_name,
             trust_remote_code=True,
             torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
@@ -42,7 +49,7 @@ def load_model():
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         logger.info(f"Model loaded successfully on {device}")
-        return model, tokenizer, device
+        return model, tokenizer, image_processor, device
         
     except Exception as e:
         logger.error(f"Failed to load model: {e}")

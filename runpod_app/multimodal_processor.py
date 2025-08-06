@@ -7,7 +7,7 @@ from io import BytesIO
 # Configure logging
 logger = logging.getLogger(__name__)
 
-def process_multimodal_input(text, image, model, tokenizer, device):
+def process_multimodal_input(text, image, model, tokenizer, image_processor, device):
     """
     Process multimodal input (text + image) using Qwen 2.5 VL model
     

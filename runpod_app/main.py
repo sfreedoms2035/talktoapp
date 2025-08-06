@@ -21,7 +21,8 @@ app = FastAPI(title="TalkToApp RunPod Service", version="1.0.0")
 
 # Global variables for model and state
 model = None
-processor = None
+tokenizer = None
+image_processor = None
 device = None
 app_state = {
     "status": "initializing",
@@ -33,12 +34,12 @@ app_state = {
 @app.on_event("startup")
 async def startup_event():
     """Load model when application starts"""
-    global model, processor, device
+    global model, tokenizer, image_processor, device
     logger.info("Starting application and loading model...")
     
     try:
         app_state["status"] = "loading_model"
-        model, processor, device = load_model()
+        model, tokenizer, image_processor, device = load_model()
         app_state["model_loaded"] = True
         app_state["status"] = "ready"
         logger.info("Model loaded successfully")
@@ -67,7 +68,7 @@ async def process_request(
     image: UploadFile = File(...)
 ):
     """Process multimodal input (text + image) and return AI response"""
-    global model, processor, device
+    global model, tokenizer, image_processor, device
     
     if not app_state["model_loaded"]:
         return JSONResponse(
@@ -92,7 +93,7 @@ async def process_request(
         
         # Process with multimodal model
         response = process_multimodal_input(
-            text, image_pil, model, processor, device
+            text, image_pil, model, tokenizer, image_processor, device
         )
         
         # Update state
