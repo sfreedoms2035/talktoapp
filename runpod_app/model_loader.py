@@ -39,9 +39,12 @@ def load_model():
             model_name,
             trust_remote_code=True,
             torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-            device_map="cuda" if torch.cuda.is_available() else "cpu",
             token=hf_token  # Use token if available
         )
+        
+        # Move model to device if CUDA is available
+        if torch.cuda.is_available():
+            model = model.cuda()
         
         # Set model to evaluation mode
         model.eval()
