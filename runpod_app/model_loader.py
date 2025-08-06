@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoModelForVision2Seq, AutoTokenizer, AutoImageProcessor
+from transformers import AutoModelForImageToText, AutoTokenizer, AutoImageProcessor
 import logging
 import os
 
@@ -34,7 +34,7 @@ def load_model():
         )
         
         # Load model
-        model = AutoModelForVision2Seq.from_pretrained(
+        model = AutoModelForImageToText.from_pretrained(
             model_name,
             trust_remote_code=True,
             torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
