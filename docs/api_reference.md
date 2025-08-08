@@ -1,115 +1,116 @@
 # TalkToApp API Reference
 
-This document provides detailed information about the API endpoints available in the TalkToApp RunPod server.
+This document provides detailed information about the API endpoints available in the RunPod service for the TalkToApp project.
 
 ## Base URL
 
 ```
-http://<RUNPOD_IP>:8000
+http://<runpod-server-ip>:8000
 ```
-
-Replace `<RUNPOD_IP>` with the actual IP address of your RunPod instance.
 
 ## Health Check Endpoint
 
 ### GET /health
 
-Check the health status of the server and model loading status.
-
-#### Request
-```
-GET /health
-```
+Returns the current health status of the RunPod service.
 
 #### Response
+
 ```json
 {
   "status": "ready",
   "model_loaded": true,
-  "timestamp": 1640995200.0
+  "timestamp": 1723123456.789
 }
 ```
 
 #### Response Fields
+
 | Field | Type | Description |
 |-------|------|-------------|
-| status | string | Current server status (initializing, loading_model, ready, error, processing) |
-| model_loaded | boolean | Indicates if the AI model has been successfully loaded |
+| status | string | Current service status ("initializing", "loading_model", "ready", "processing", "error") |
+| model_loaded | boolean | Indicates if the Qwen model has been successfully loaded |
 | timestamp | number | Unix timestamp of the response |
 
-#### Possible Status Values
-- `initializing`: Server is starting up
-- `loading_model`: Model is being loaded
-- `ready`: Server is ready to process requests
-- `error`: An error occurred
-- `processing`: Server is currently processing a request
+#### Example
+
+```bash
+curl -X GET http://localhost:8000/health
+```
 
 ## Status Endpoint
 
 ### GET /status
 
-Get detailed status information about the server including request statistics.
-
-#### Request
-```
-GET /status
-```
+Returns detailed status information about the RunPod service.
 
 #### Response
+
 ```json
 {
   "status": "ready",
   "model_loaded": true,
-  "last_request_time": 1640995200.0,
+  "last_request_time": 1723123456.789,
   "request_count": 42
 }
 ```
 
 #### Response Fields
+
 | Field | Type | Description |
 |-------|------|-------------|
-| status | string | Current server status |
-| model_loaded | boolean | Indicates if the AI model has been successfully loaded |
+| status | string | Current service status |
+| model_loaded | boolean | Indicates if the Qwen model has been successfully loaded |
 | last_request_time | number | Unix timestamp of the last processed request |
-| request_count | integer | Total number of requests processed |
+| request_count | integer | Total number of requests processed since startup |
+
+#### Example
+
+```bash
+curl -X GET http://localhost:8000/status
+```
 
 ## Process Endpoint
 
 ### POST /process
 
-Process a multimodal request containing text and an image.
+Processes multimodal input (text + image) using the Qwen 2.5 VL model.
 
-#### Request
-```
-POST /process
-Content-Type: multipart/form-data
+#### Request Format
 
-Form Data:
-- text: "What is in this image?"
-- image: [JPEG image file]
-```
+Multipart form data with the following fields:
 
-#### Request Parameters
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| text | string | Yes | User's text query about the image |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| text | string | Yes | User's text query |
 | image | file | Yes | Image file (JPEG format recommended) |
 
-#### Response (Success)
+#### Request Example
+
+```bash
+curl -X POST http://localhost:8000/process \
+  -F "text=What is in this image?" \
+  -F "image=@captured_image.jpg"
+```
+
+#### Response
+
 ```json
 {
-  "response": "This image shows a beautiful landscape with mountains and a lake.",
-  "timestamp": 1640995200.0
+  "response": "The image shows a beautiful landscape with mountains and a lake.",
+  "timestamp": 1723123456.789
 }
 ```
 
 #### Response Fields
+
 | Field | Type | Description |
 |-------|------|-------------|
-| response | string | AI-generated response to the user's query |
+| response | string | AI-generated response to the input |
 | timestamp | number | Unix timestamp of the response |
 
-#### Response (Error)
+#### Error Response
+
 ```json
 {
   "error": "Failed to process request",
@@ -117,100 +118,183 @@ Form Data:
 }
 ```
 
-#### Error Response Fields
-| Field | Type | Description |
-|-------|------|-------------|
-| error | string | General error message |
-| details | string | Detailed error information |
+#### Error Response Codes
 
-#### HTTP Status Codes
-| Code | Description |
-|------|-------------|
-| 200 | Success |
-| 400 | Bad request (missing parameters) |
-| 500 | Internal server error |
-| 503 | Service unavailable (model not loaded) |
+| HTTP Status | Error Message | Description |
+|-------------|---------------|-------------|
+| 503 | Model not loaded | The Qwen model failed to load or is not ready |
+| 500 | Failed to process request | An error occurred during request processing |
 
-## Example Usage
+## Data Formats
 
-### Python Example
-```python
-import requests
+### Text Format
 
-# Server URL
-url = "http://YOUR_RUNPOD_IP:8000/process"
+All text data should be UTF-8 encoded strings.
 
-# Prepare data
-data = {
-    "text": "What objects can you see in this image?"
-}
+### Image Format
 
-# Prepare image file
-files = {
-    "image": open("image.jpg", "rb")
-}
-
-# Send request
-response = requests.post(url, data=data, files=files)
-
-# Process response
-if response.status_code == 200:
-    result = response.json()
-    print("AI Response:", result["response"])
-else:
-    print("Error:", response.status_code, response.text)
-```
-
-### cURL Example
-```bash
-curl -X POST "http://YOUR_RUNPOD_IP:8000/process" \
-  -F "text=What is in this image?" \
-  -F "image=@image.jpg"
-```
-
-### JavaScript Example
-```javascript
-const formData = new FormData();
-formData.append('text', 'What is in this image?');
-formData.append('image', fileInput.files[0]);
-
-fetch('http://YOUR_RUNPOD_IP:8000/process', {
-  method: 'POST',
-  body: formData
-})
-.then(response => response.json())
-.then(data => {
-  console.log('AI Response:', data.response);
-})
-.catch(error => {
-  console.error('Error:', error);
-});
-```
-
-## Error Handling
-
-The API provides detailed error messages to help with debugging:
-
-1. **Model Not Loaded (503)**: The AI model failed to load or is still loading
-2. **Bad Request (400)**: Missing required parameters
-3. **Internal Server Error (500)**: Unexpected error during processing
-
-Always check the HTTP status code and error details in the response body for troubleshooting.
+- **Format**: JPEG (recommended)
+- **Maximum size**: Processed images are automatically resized to 512px max dimension
+- **Color space**: RGB
+- **Compression**: Images are optimized for faster processing
 
 ## Performance Considerations
 
-1. **Image Size**: Large images will increase processing time. The server automatically resizes images to a maximum of 512px on the longest side.
-2. **Network Latency**: API response time depends on network conditions between the client and server.
-3. **Model Processing Time**: Complex queries may take longer to process.
+### Request Timeout
 
-## Rate Limiting
+The API has a default timeout of 30 seconds for processing requests. For complex queries or large images, responses may take longer.
 
-The current implementation does not include rate limiting, but it's recommended to implement client-side throttling to avoid overwhelming the server.
+### Rate Limiting
 
-## Security
+The current implementation does not include rate limiting. In production environments, consider implementing rate limiting to prevent abuse.
 
-For production use, consider implementing:
-1. HTTPS encryption
-2. Authentication tokens
-3. Input validation
-4. Request size limits
+### Image Size Optimization
+
+To minimize processing time:
+1. Images are automatically resized to 512px max dimension
+2. Large images will be compressed before processing
+3. JPEG format is recommended for faster processing
+
+## Error Handling
+
+### Common Error Responses
+
+| HTTP Status | Error Message | Description |
+|-------------|---------------|-------------|
+| 400 | Bad Request | Invalid request format or missing required fields |
+| 413 | Request Entity Too Large | Uploaded image exceeds size limits |
+| 500 | Internal Server Error | Unexpected error during processing |
+| 503 | Service Unavailable | Service is not ready or model failed to load |
+
+### Error Response Format
+
+All error responses follow this format:
+
+```json
+{
+  "error": "Error description",
+  "details": "Additional details about the error"
+}
+```
+
+## Implementation Details
+
+### Model Loading
+
+The Qwen 2.5 VL model is loaded once at startup:
+- Model: `unsloth/Qwen2.5-VL-3B-Instruct-unsloth-bnb-4bit`
+- Quantization: 4-bit for memory efficiency
+- Device: Automatically uses CUDA if available, falls back to CPU
+
+### Image Processing
+
+1. Images are resized to 512px max dimension while maintaining aspect ratio
+2. Images are converted to RGB format if needed
+3. Images are processed in memory without temporary file storage
+
+### Text Processing
+
+1. Text is processed as-is without additional preprocessing
+2. Maximum token length for generation is 512 tokens
+3. Generation parameters:
+   - Temperature: 0.7
+   - Top-p: 0.9
+   - Do sample: True
+
+## Security Considerations
+
+### Authentication
+
+The current API implementation does not include authentication. In production environments, consider:
+
+1. Adding API key authentication
+2. Implementing OAuth 2.0 for user authentication
+3. Using HTTPS for encrypted communication
+
+### Input Validation
+
+1. Text inputs are sanitized to prevent injection attacks
+2. Image files are validated for format and size
+3. File extensions are checked to prevent malicious uploads
+
+### Rate Limiting
+
+Implement rate limiting to prevent abuse:
+- Per-IP rate limiting
+- Per-user rate limiting (if authentication is added)
+- Burst rate limiting for sudden traffic spikes
+
+## Monitoring and Logging
+
+### Request Logging
+
+All requests are logged with:
+- Timestamp
+- Client IP address
+- Request method and endpoint
+- Response status code
+- Processing time
+
+### Error Logging
+
+Errors are logged with:
+- Error message and stack trace
+- Request details
+- Client information
+- Timestamp
+
+### Performance Metrics
+
+Performance metrics tracked:
+- Average response time
+- Request success rate
+- Model processing time
+- Memory usage
+
+## Testing
+
+### Health Check Test
+
+```bash
+curl -X GET http://localhost:8000/health
+```
+
+### Process Test
+
+```bash
+curl -X POST http://localhost:8000/process \
+  -F "text=Describe this image" \
+  -F "image=@test_image.jpg"
+```
+
+### Status Test
+
+```bash
+curl -X GET http://localhost:8000/status
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Model Loading Failure**
+   - Check Hugging Face token
+   - Verify internet connectivity
+   - Check GPU memory availability
+
+2. **Slow Response Times**
+   - Check image size
+   - Verify GPU utilization
+   - Monitor system resources
+
+3. **Connection Errors**
+   - Verify service is running
+   - Check firewall settings
+   - Verify network connectivity
+
+### Debugging Information
+
+To get more detailed information about issues:
+1. Check the service logs
+2. Verify the health endpoint response
+3. Test with a simple image and text query

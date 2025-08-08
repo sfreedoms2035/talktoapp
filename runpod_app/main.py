@@ -93,7 +93,7 @@ async def process_request(
         
         # Process with multimodal model
         response = process_multimodal_input(
-            text, image_pil, model, tokenizer, processor, device
+            text, image_pil, model, tokenizer, image_processor, device
         )
         
         # Update state
