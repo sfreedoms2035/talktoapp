@@ -51,10 +51,19 @@ async def startup_event():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
+    import socket
+    # Get the actual IP addresses the server is listening on
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    
     return {
         "status": app_state["status"],
         "model_loaded": app_state["model_loaded"],
-        "timestamp": time.time()
+        "timestamp": time.time(),
+        "hostname": hostname,
+        "local_ip": local_ip,
+        "listening_host": "0.0.0.0",
+        "port": 8000
     }
 
 @app.get("/status")

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'models/app_state.dart';
+import 'test_whisper_simple.dart';
 
 void main() {
   runApp(
@@ -23,7 +24,11 @@ class TalkToApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const HomeScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const HomeScreen(),
+        '/test_whisper_simple': (context) => const WhisperSimpleTestScreen(),
+      },
     );
   }
 }

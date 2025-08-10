@@ -14,7 +14,7 @@ class StatusIndicator extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withValues(alpha: 0.3),
             spreadRadius: 2,
             blurRadius: 5,
             offset: const Offset(0, 3),
@@ -63,10 +63,47 @@ class StatusIndicator extends StatelessWidget {
               statusIcon = Icons.error;
               statusText = 'Error';
               break;
+            case AppStatus.cameraInitializing:
+              statusColor = Colors.orange;
+              statusIcon = Icons.camera;
+              statusText = 'Camera Initializing';
+              break;
+            case AppStatus.cameraReady:
+              statusColor = Colors.green;
+              statusIcon = Icons.camera_alt;
+              statusText = 'Camera Ready';
+              break;
+            case AppStatus.triggerDetected:
+              statusColor = Colors.purple;
+              statusIcon = Icons.touch_app;
+              statusText = 'Trigger Detected';
+              break;
+            case AppStatus.dataSending:
+              statusColor = Colors.blue;
+              statusIcon = Icons.upload;
+              statusText = 'Sending Data';
+              break;
+            case AppStatus.dataSent:
+              statusColor = Colors.green;
+              statusIcon = Icons.check_circle;
+              statusText = 'Data Sent';
+              break;
+            case AppStatus.dataFailed:
+              statusColor = Colors.red;
+              statusIcon = Icons.error;
+              statusText = 'Data Failed';
+              break;
             default:
-              statusColor = Colors.grey;
-              statusIcon = Icons.help;
-              statusText = 'Unknown';
+              // Show initializing state when app is starting up
+              if (appState.errorMessage.contains('Initializing')) {
+                statusColor = Colors.blue;
+                statusIcon = Icons.settings;
+                statusText = 'Initializing';
+              } else {
+                statusColor = Colors.grey;
+                statusIcon = Icons.help;
+                statusText = 'Unknown';
+              }
           }
 
           return Row(

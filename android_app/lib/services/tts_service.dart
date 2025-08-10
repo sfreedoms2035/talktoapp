@@ -10,11 +10,29 @@ class TtsService {
 
   Future<void> _initialize() async {
     try {
-      // Set up TTS properties
+      // Set up TTS properties with American English voice
       await _flutterTts.setLanguage('en-US');
-      await _flutterTts.setSpeechRate(0.5);
+      await _flutterTts.setSpeechRate(0.6); // Slightly faster for more natural flow
       await _flutterTts.setVolume(1.0);
-      await _flutterTts.setPitch(1.0);
+      await _flutterTts.setPitch(1.1); // Slightly higher pitch for clearer voice
+      
+      // Try to set a specific voice if available
+      try {
+        final voices = await _flutterTts.getVoices;
+        if (voices != null) {
+          // Look for a high quality American English voice and avoid German voices
+          for (var voice in voices) {
+            if (voice.name != null && 
+                (voice.name!.contains('en-US') || voice.name!.contains('English')) &&
+                !voice.name!.contains('de-DE') && !voice.name!.contains('German')) {
+              await _flutterTts.setVoice(voice);
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        print('Could not set specific voice: $e');
+      }
       
       _isInitialized = true;
     } catch (e) {

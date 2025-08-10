@@ -14,7 +14,7 @@ class TriggerDisplay extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withValues(alpha: 0.3),
             spreadRadius: 2,
             blurRadius: 5,
             offset: const Offset(0, 3),
@@ -38,8 +38,8 @@ class TriggerDisplay extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: appState.triggerDetected.isNotEmpty
-                      ? Colors.green.withOpacity(0.2)
-                      : Colors.grey.withOpacity(0.2),
+                      ? Colors.green.withValues(alpha: 0.2)
+                      : Colors.grey.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Row(
@@ -71,7 +71,7 @@ class TriggerDisplay extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               const Text(
-                'Trigger Words: "Hey monitor"',
+                'Trigger Words: "hey"',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
